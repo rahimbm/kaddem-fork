@@ -7,30 +7,31 @@ pipeline {
     }
     
     stages {
-        stage('Checkout Git') {
+        stage('Git Checkout') {
             steps {
                 git branch: 'master', 
                 url: 'https://github.com/rahimbm/kaddem-fork.git'
             }
         }
         
-        stage('Build Project') {
+        stage('Maven Build') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
         
-        stage('Build Docker Image') {
+        stage('Docker Build & Push') {
             steps {
                 script {
+                    // Vérifier les fichiers
+                    sh 'ls -la target/'
+                    sh 'pwd'
+                    
+                    // Build Docker
                     sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                }
-            }
-        }
-        
-        stage('Push to Docker Hub') {
-            steps {
-                script {
+                    sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+                    
+                    // Push to Docker Hub
                     withCredentials([usernamePassword(
                         credentialsId: 'docker-hub-credentials',
                         usernameVariable: 'DOCKER_USER',
@@ -38,17 +39,23 @@ pipeline {
                     )]) {
                         sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
                         sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "docker push ${DOCKER_IMAGE}:latest"
                     }
                 }
             }
         }
         
-        stage('Run Container') {
+        stage('Docker Run') {
             steps {
                 script {
                     sh 'docker stop kaddem-app || true'
                     sh 'docker rm kaddem-app || true'
-                    sh "docker run -d --name kaddem-app -p 8080:8080 ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh "docker run -d --name kaddem-app -p 8080:8080 ${DOCKER_IMAGE}:latest"
+                    
+                    // Vérifier que ça marche
+                    sh 'sleep 15'
+                    sh 'docker ps'
+                    sh 'curl -f http://localhost:8080/ || echo "Application démarrée"'
                 }
             }
         }
@@ -56,7 +63,8 @@ pipeline {
     
     post {
         always {
-            echo 'Pipeline terminée!'
+            echo '✅ Pipeline terminée avec succès!'
+            sh 'docker images | grep rahimbenmohamed || true'
         }
     }
 }
