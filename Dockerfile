@@ -1,9 +1,6 @@
-//FROM openjdk:17-jdk-slim
-//VOLUME /tmp
-//COPY target/*.jar app.jar
-//ENTRYPOINT ["java","-jar","/app.jar"]
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY kaddem-backend/target/*.jar app.jar
+VOLUME /tmp
+COPY target/*.jar app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","/app.jar"]
