@@ -50,12 +50,15 @@ pipeline {
                 script {
                     sh 'docker stop kaddem-app || true'
                     sh 'docker rm kaddem-app || true'
-                    sh "docker run -d --name kaddem-app -p 8081:8080 ${DOCKER_IMAGE}:latest"
+                    sh "docker run -d --name kaddem-app -p 8089:8089 ${DOCKER_IMAGE}:latest"
                     
                     // Vérifier que ça marche
-                    sh 'sleep 15'
-                    sh 'docker ps'
-                    sh 'curl -f http://localhost:8080/ || echo "Application démarrée"'
+                    sh 'echo "=== Conteneurs Docker ==="'
+                    sh 'docker ps -a'
+                    sh 'echo "=== Logs de l application ==="'
+                    sh 'docker logs kaddem-app'
+                    sh 'echo "=== Test de connexion ==="'
+                    sh 'curl -f http://localhost:8089/ || curl -v http://localhost:8089/ || echo "Test de connexion échoué - vérifiez les logs ci-dessus"'
                 }
             }
         }
