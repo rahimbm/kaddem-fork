@@ -50,7 +50,7 @@ pipeline {
                 script {
                     sh 'docker stop kaddem-app || true'
                     sh 'docker rm kaddem-app || true'
-                    sh "docker run -d --name kaddem-app -p 8080:8080 ${DOCKER_IMAGE}:latest"
+                    sh "docker run -d --name kaddem-app -p 8081:8080 ${DOCKER_IMAGE}:latest"
                     
                     // Vérifier que ça marche
                     sh 'sleep 15'
